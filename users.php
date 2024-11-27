@@ -24,9 +24,9 @@ $result = $db->query("SELECT id, username, email, role, created_at FROM users");
 
     <header>
         <a href="/">Главная</a>
-        <a href="/login.php">Авторизация</a>
-        <a href="/register.php">Регистрация</a>
         <a href="/update.php">Обновить данные</a>
+        <a href="/update.php">Добавиить пост</a>
+        <a href="/update.php">Все посты</a>
         <?php if ($_SESSION['role'] === 'admin') { ?>
             <a href="users.php">Список пользователей</a>
         <?php } ?>

@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="/">Главная</a>
         <a href="/login.php">Авторизация</a>
         <a href="/register.php">Регистрация</a>
-        <a href="/update.php">Обновить данные</a>
     </header>
 
     <h1>Вход</h1>

@@ -1,11 +1,16 @@
 <?php
 function connect_database()
 {
+    $hostname = '151.248.115.10';
+    $username = 'root';
+    $password = 'Kwuy1mSu4Y';
+    $database = 'learn_rahmonov';
+
     $db = new mysqli(
-        '151.248.115.10',
-        'root',
-        'Kwuy1mSu4Y',
-        'is364-rahmonov'
+        $hostname,
+        $username,
+        $password,
+        $database
     );
 
     if ($db->connect_error) {
@@ -70,7 +75,7 @@ function update_user($user_id, $new_username, $new_password = null)
         $stmt = $db->prepare("UPDATE users SET username = ?, password = ? WHERE id = ?");
         $stmt->bind_param('ssi', $new_username, $hashed_password, $user_id);
     } else {
-        $stmt = $db->prepare("UPDATE users SET username = ?, WHERE id = ?");
+        $stmt = $db->prepare("UPDATE users SET username = ? WHERE id = ?");
         $stmt->bind_param('si', $new_username, $user_id);
     }
 
@@ -80,4 +85,51 @@ function update_user($user_id, $new_username, $new_password = null)
         echo "<script>alert('ошибка')</script>";
     }
 }
-?>
+
+function create_post($user_id, $title, $content)
+{
+    $db = connect_database();
+
+    $stmt = $db->prepare(query: "INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)");
+    $stmt->bind_param('iss', $user_id, $title, $content);
+    $stmt->execute();
+}
+
+function get_posts()
+{
+    $db = connect_database();
+
+    $stmt = $db->query(query: "SELECT users.username, posts.title, posts.content FROM posts INNER JOIN users ON posts.user_id = users.id");
+    $result = $stmt->fetch_all(MYSQLI_ASSOC);
+
+    return $result;
+}
+
+function reset_password($username_or_email)
+{
+    $db = connect_database();
+
+    $stmt = $db->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+    $stmt->bind_param('ss', $username_or_email, $username_or_email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+
+    if ($user) {
+        $id = $user['id'];
+        $token = bin2hex(random_bytes(16));
+        $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+        $stmt = $db->prepare("DELETE FROM password_reset_tokens WHERE user_id = ?");
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+
+        $stmt = $db->prepare("INSERT INTO password_reset_tokens (user_id, token, expired_at) VALUES (?, ?, ?)");
+        $stmt->bind_param('iss', $id, $token, $expires);
+        $stmt->execute();
+
+        return ['id' => $id, 'token' => $token];
+    } else {
+        return null;
+    }
+}
